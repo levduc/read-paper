@@ -1,0 +1,951 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>[Short title] · reading notes</title>
+<meta name="description" content="Reading notes on [paper title]: how it works, step by step, with reviewer questions.">
+<meta name="robots" content="noindex, nofollow">
+<script>try{var t=localStorage.getItem("rp-theme");if(t==="dark"||t==="light")document.documentElement.setAttribute("data-theme",t);}catch(e){}</script>
+<link rel="stylesheet" href="fonts/cmun-typewriter.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Ubuntu+Mono:400,700&display=swap">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
+<style>
+:root{
+  color-scheme: light;
+  --font:"Computer Modern Typewriter", sans-serif;
+  --mono:"Ubuntu Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+  --plane:#ffffff; --surface-1:#fafafa;
+  --ink-1:#333333; --ink-head:#333300; --ink-2:#333333; --ink-muted:#767676;
+  --grid:#e8e8e8; --axis:#c4c4c4; --ring:rgba(0,0,0,.13);
+  --s1:#2a78d6; --s2:#eb6834; --s3:#1baf7a; --s4:#eda100;
+  --good:#0ca30c; --warning:#fab219; --critical:#d03b3b;
+  --accent:#00008b; --on-accent:#ffffff;
+  --hl:#eef3fb; --warn-ink:#9a6a00; --c-frame:#8a8a8a; --c-drop:#8a5cd6;
+  --barh:46px;
+}
+:root[data-theme="dark"]{
+  /* gruvbox-material dark, medium contrast, material foreground (sainnhe/gruvbox-material) */
+  color-scheme: dark;
+  --plane:#282828; --surface-1:#32302f;
+  --ink-1:#d4be98; --ink-head:#ddc7a1; --ink-2:#d4be98; --ink-muted:#a89984;
+  --grid:#3c3836; --axis:#5a524c; --ring:rgba(212,190,152,.18);
+  --s1:#7daea3; --s2:#e78a4e; --s3:#89b482; --s4:#d8a657;
+  --good:#a9b665; --warning:#d8a657; --critical:#ea6962;
+  --accent:#7daea3; --on-accent:#282828;
+  --hl:#374141; --warn-ink:#d8a657; --c-frame:#928374; --c-drop:#d3869b;
+}
+:root[data-theme="light"]{ color-scheme: light; }
+*{box-sizing:border-box}
+body{margin:0; background:var(--plane); color:var(--ink-1); font-family:var(--font);
+  font-weight:300; font-size:17px; line-height:1.45; -webkit-font-smoothing:antialiased}
+h1,h2,h3{font-family:var(--font); color:var(--ink-head); line-height:1.15; margin:0}
+p{margin:0 0 .8em; color:var(--ink-2)}
+a{color:var(--accent); text-decoration:none}
+a:hover{text-decoration:underline}
+code{font-family:var(--mono); font-size:.95em; background:var(--surface-1); padding:0 .25em; border-radius:2px}
+:focus-visible{outline:2px solid var(--accent); outline-offset:2px}
+
+/* ---------- slides: scroll mode (phone, narrow or short windows) ---------- */
+.slide{max-width:1000px; margin:0 auto; padding:30px 16px 34px; border-top:1px solid var(--grid); position:relative}
+.slide:first-of-type{border-top:0}
+.eyebrow{font-family:var(--mono); font-size:.78em; letter-spacing:.06em; text-transform:uppercase;
+  color:var(--ink-muted); font-weight:700; margin:0 0 .3em}
+.slide h2{font-size:1.75em; font-weight:400; margin:0 0 .2em}
+.fig{position:relative; margin:.8em 0}
+.fig > svg{display:block; width:100%; height:auto; overflow:visible}
+.say{list-style:none; margin:.4em 0 0; padding:0; flex:none}
+.say li{font-size:1.06em; line-height:1.35; padding:.12em 0 .12em 1.1em; position:relative; color:var(--ink-1)}
+.say li::before{content:"›"; position:absolute; left:0; color:var(--accent); font-family:var(--mono); font-weight:700}
+.say b{color:var(--ink-head)}
+.tag{display:inline-block; font-family:var(--mono); font-size:.7em; font-weight:700; letter-spacing:.05em; text-transform:uppercase;
+  border:1px solid currentColor; border-radius:3px; padding:0 .4em; vertical-align:.15em; white-space:nowrap}
+.tag.plan{color:var(--warn-ink)} .tag.calc{color:var(--ink-muted)}
+.tag.bad{color:var(--critical)} .tag.ok{color:var(--good)} .tag.nv{color:var(--warn-ink)}
+.notes{display:none; font-family:var(--mono); font-size:.8em; line-height:1.45; color:var(--ink-2);
+  background:var(--surface-1); border:1px solid var(--ring); border-left:4px solid var(--s4); border-radius:4px; padding:10px 14px; margin-top:12px}
+.notes b{color:var(--ink-1)}
+.notes ul{margin:.2em 0 0; padding-left:1.1em}
+.notes li{margin:.15em 0}
+.notes::before{content:"Speaker notes"; display:block; font-weight:700; letter-spacing:.05em; text-transform:uppercase; font-size:.85em; color:var(--warn-ink); margin-bottom:.3em}
+body.show-notes .notes{display:block}
+
+/* title slide */
+.title-wrap h1{font-size:3.2em; font-weight:400}
+.title-slide{justify-content:center}
+.title-slide .title-wrap{text-align:center; margin:auto 0}
+.title-slide .title-wrap h1{font-size:3.6em; margin:0}
+.title-slide .title-wrap .sub{font-size:1.35em; margin:.5em auto 1.6em; max-width:32em}
+.title-slide .title-wrap .who{font-size:1.2em; color:var(--ink-1)}
+.title-slide .title-wrap .when{font-family:var(--mono); font-size:.95em; color:var(--ink-muted); margin:.4em 0 0}
+.title-wrap .sub{font-size:1.35em; margin:.35em 0 .5em; color:var(--ink-2)}
+.title-wrap .who{font-family:var(--mono); font-size:.9em; color:var(--ink-muted); margin:0}
+.title-wrap .who b{color:var(--ink-1)}
+.divider{display:flex; flex-direction:column; justify-content:center}
+.divider h2{font-size:2.6em}
+
+/* figure + formal statement side by side */
+.row{display:grid; grid-template-columns:minmax(0,1fr) minmax(0,18.5em); gap:1.3em; align-items:center; margin:.8em 0}
+.row > .fig{margin:0; align-self:stretch}
+.formal{font-size:.86em; line-height:1.38; background:var(--surface-1); border:1px solid var(--ring); border-left:4px solid var(--accent);
+  border-radius:4px; padding:.75em .95em; color:var(--ink-1); min-width:0}
+.formal .k{font-family:var(--mono); font-size:.8em; letter-spacing:.06em; text-transform:uppercase; color:var(--ink-muted); font-weight:700; margin:0 0 .45em}
+.formal p{margin:0 0 .5em; color:var(--ink-1)}
+.formal p:last-child{margin:0}
+.formal .src{font-family:var(--mono); font-size:.82em; color:var(--ink-muted)}
+.formal .katex-display{margin:.25em 0; overflow-x:auto; overflow-y:hidden}
+.formal .bad{color:var(--critical); font-weight:700}
+
+/* panels (questions, summary) */
+.cols3{display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:1em; align-items:start}
+.qpanel{border-radius:6px; padding:.75em 1em; border:2px solid; background:var(--surface-1)}
+.qpanel h3{font-size:1.2em; margin-bottom:.15em}
+.qpanel .who{font-family:var(--mono); font-size:.8em; color:var(--ink-muted); margin:0 0 .4em}
+.qpanel ol{margin:0; padding-left:1.3em}
+.qpanel li{font-size:.98em; line-height:1.3; margin:.2em 0 .45em; color:var(--ink-1)}
+.qpanel.t1{border-color:var(--s1)} .qpanel.t1 h3{color:var(--s1)}
+.qpanel.t2{border-color:var(--s2)} .qpanel.t2 h3{color:var(--s2)}
+.qpanel.t3{border-color:var(--s3)} .qpanel.t3 h3{color:var(--s3)}
+
+/* claims ledger */
+table{width:100%; border-collapse:collapse; font-size:.78em}
+th,td{text-align:left; padding:.32em .5em; border-bottom:1px solid var(--grid); vertical-align:top}
+th{font-family:var(--mono); font-size:.9em; letter-spacing:.04em; text-transform:uppercase; color:var(--ink-muted); font-weight:700}
+td{font-family:var(--font); color:var(--ink-1)}
+td.loc{font-family:var(--mono); font-size:.92em; color:var(--ink-muted); white-space:nowrap}
+.ledger td:first-child{color:var(--ink-head)}
+.cav{margin:0; padding-left:1.2em; columns:2; column-gap:2.2em}
+.cav li{margin:0 0 .5em; break-inside:avoid; font-size:.9em}
+.cav b{color:var(--ink-head)}
+
+/* lane-tagged questions: one chip per question, on the slide where it arises */
+.qs{display:flex; flex-direction:column; gap:.3em; margin:.6em 0 0; flex:none}
+.q{margin:0; font-size:.84em; line-height:1.3; padding:.28em .7em .28em .6em; border-left:4px solid var(--lc);
+  background:var(--surface-1); border-radius:3px; color:var(--ink-1)}
+.q::before{content:attr(data-lane); font-family:var(--mono); font-size:.82em; font-weight:700; letter-spacing:.05em;
+  text-transform:uppercase; color:var(--lc); margin-right:.6em}
+.q .at, .qpanel li .at{font-family:var(--mono); font-size:.86em; color:var(--ink-muted); margin-left:.3em; white-space:nowrap}
+.q[data-lane=theory], .lane.theory{--lc:var(--s1)}
+.q[data-lane=systems], .lane.systems{--lc:var(--s2)}
+.q[data-lane=protocol], .lane.protocol{--lc:var(--s3)}
+.q[data-lane=reader], .lane.reader{--lc:var(--s4)}
+body.hide-qs .qs{display:none}
+.lane{font-family:var(--mono); font-weight:700; letter-spacing:.05em; text-transform:uppercase; color:var(--lc); font-size:.92em}
+.qpanel.t4{border-color:var(--s4)} .qpanel.t4 h3{color:var(--s4)}
+.qpanel li a{font-family:var(--mono); font-size:.85em; white-space:nowrap}
+#allq{grid-template-columns:repeat(auto-fit, minmax(14em, 1fr))}
+.scale{font-family:var(--mono); font-size:.8em; color:var(--ink-muted); margin:.8em 0 0}
+.ledger.score td:nth-child(2), .ledger.score td:nth-child(3){font-family:var(--mono); font-weight:700}
+
+/* ---------- control bar ---------- */
+.bar{position:fixed; left:0; right:0; bottom:0; height:var(--barh); display:flex; align-items:center; gap:8px; padding:0 14px;
+  background:var(--plane); border-top:1px solid var(--grid); z-index:40; font-family:var(--mono); font-size:14px}
+.bar .prog{position:absolute; left:0; top:-2px; height:3px; background:var(--accent); width:0; transition:width .25s}
+@media (prefers-reduced-motion: reduce){ .bar .prog{transition:none} }
+.bar button{font-family:var(--mono); font-size:14px; border:1px solid var(--ring); background:var(--surface-1); color:var(--ink-1);
+  height:32px; min-width:34px; padding:0 .7em; border-radius:3px; cursor:pointer; display:inline-flex; align-items:center; justify-content:center}
+.bar button:hover{border-color:var(--accent); color:var(--accent)}
+.bar button:disabled{opacity:.35; cursor:default}
+.bar button[aria-pressed=true]{border-color:var(--accent); color:var(--accent); font-weight:700}
+.bar .count{min-width:4.2em; text-align:center; font-variant-numeric:tabular-nums; color:var(--ink-1)}
+.bar .ttl{flex:1; min-width:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; color:var(--ink-muted)}
+.bar .home{color:var(--ink-muted); white-space:nowrap}
+.bar .k{color:var(--ink-muted); font-size:12px}
+body{padding-bottom:calc(var(--barh) + 8px)}
+
+/* ---------- deck mode: one slide per viewport ---------- */
+html.deck, html.deck body{height:100%; overflow:hidden}
+html.deck body{padding-bottom:0; font-size:clamp(14px, calc(.9vw + .72vh), 30px)}
+html.deck .slide{position:fixed; left:0; right:0; top:0; bottom:var(--barh); max-width:none; margin:0; border:0;
+  display:none; flex-direction:column; padding:2.6vh 4.5vw 1.6vh}
+html.deck .slide.on{display:flex}
+html.deck .fig{flex:1 1 auto; min-height:0; margin:1.2vh 0}
+html.deck .fig > svg{position:absolute; inset:0; width:100%; height:100%}
+html.deck .fig.html{position:static; display:flex; flex-direction:column; justify-content:center}
+html.deck .row{flex:1 1 auto; min-height:0; margin:1.2vh 0}
+html.deck .row > .fig{margin:0; height:100%}
+html.deck .title-wrap{flex:none}
+html.deck .ledger{font-size:1em}
+html.deck .ledger th{font-size:.82em}
+html.deck .cols3{font-size:1.12em}
+html.deck .cav li{font-size:1em}
+html.deck .qs{max-height:24vh; overflow:auto}
+html.deck .fig.html.scroll{justify-content:flex-start; overflow:auto}
+html.deck #allq{font-size:.82em}
+html.deck body.show-notes .slide.on .notes{position:fixed; left:4.5vw; right:4.5vw; bottom:calc(var(--barh) + 8px); max-height:46vh; overflow:auto;
+  z-index:30; box-shadow:0 6px 24px rgba(0,0,0,.18); font-size:.72em}
+
+@media (max-width:760px){
+  .slide h2{font-size:1.45em}
+  .title-wrap h1,.title-slide .title-wrap h1{font-size:2.3em}
+  .title-wrap .sub,.title-slide .title-wrap .sub{font-size:1.1em}
+  .row{grid-template-columns:minmax(0,1fr)}
+  .cols3, #allq{grid-template-columns:minmax(0,1fr)}
+  .cav{columns:1}
+  table{font-size:.78em}
+  .ledger .loc{display:none}
+  .bar .ttl,.bar .k,.bar .home{display:none}
+  .bar{justify-content:space-between}
+}
+</style>
+</head>
+<body>
+
+<!-- ============ 1 · title ============ -->
+<section class="slide title-slide" id="1" data-title="[Short title]" data-sec="intro">
+  <div class="title-wrap">
+    <h1>[Short title]</h1>
+    <p class="sub">[Full paper title] · [venue, year or arXiv id]</p>
+    <p class="who">[Authors] · reading notes</p>
+    <p class="when">[date] · private notes</p>
+  </div>
+  <aside class="notes">
+    <ul>
+      <li>[Length and layout: body pages, appendices, where the proofs and the evaluation sit.]</li>
+      <li>Every number cites its page, table or equation. A number derived here carries the tag <span class="tag calc">computed</span>, and the notes give the formula.</li>
+      <li>Questions on the slides come from three reviewer lanes: theory, systems and protocol. Reader questions are yours. Q hides them.</li>
+      <li>Keys: ← → / space / PgUp PgDn / Home End move. N notes. Q questions. T light/dark. B builds off/on. #k in the URL jumps to slide k.</li>
+    </ul>
+  </aside>
+</section>
+
+<!-- ============ 2 · problem and claims ============ -->
+<section class="slide" id="2" data-title="The problem and the claims" data-sec="intro">
+  <p class="eyebrow">The problem · abstract, §1</p>
+  <h2>[One sentence: the problem that the paper solves]</h2>
+  <div class="fig"><svg id="fclaims" role="img" aria-label="[Claim cards: one sentence per claim, for screen readers]"></svg></div>
+  <ul class="say">
+    <li>[Why the problem matters, in one line.]</li>
+    <li>[What earlier work leaves open, in one line.]</li>
+  </ul>
+  <div class="qs">
+    <p class="q" data-lane="theory">[A theory question that this slide raises?] <span class="at">§1, p. 2</span></p>
+    <p class="q" data-lane="systems">[A systems question about the headline number?] <span class="at">abstract</span></p>
+  </div>
+  <aside class="notes">
+    <ul>
+      <li><b>C1</b>: [where the claim is made: abstract, contribution (i), §k].</li>
+      <li><b>C2</b>: [...]</li>
+    </ul>
+  </aside>
+</section>
+
+<!-- ============ 3 · how it works ============ -->
+<section class="slide" id="3" data-title="How it works: one run of the protocol" data-sec="design">
+  <p class="eyebrow">How it works · §3, Algorithm 1</p>
+  <h2>[One sentence: what one run does]</h2>
+  <div class="row">
+    <div class="fig"><svg id="fflow" role="img" aria-label="[Message flow between the parties, step by step, for screen readers]"></svg></div>
+    <div class="formal" data-bstep="2">
+      <p class="k">Formal · Definition 1, p. 4</p>
+      <p>[The formal statement, short.]</p>
+      <p>$$\mathsf{leaf}=\mathsf{PRF}_K(a\,\|\,c)\bmod 2^{L}$$</p>
+      <p class="src">[What the formal box leaves out, or a caveat.]</p>
+    </div>
+  </div>
+  <ul class="say">
+    <li>[The key idea, in one line.]</li>
+  </ul>
+  <div class="qs">
+    <p class="q" data-lane="protocol">[A protocol question: what does the server learn at step 3?] <span class="at">§3.2, p. 6</span></p>
+    <p class="q" data-lane="reader">[Your own question. Use data-lane="reader".] <span class="at">Alg. 1</span></p>
+  </div>
+  <aside class="notes">
+    <ul>
+      <li>[The detail that the figure omits: message sizes, edge cases, the exact algorithm lines.]</li>
+    </ul>
+  </aside>
+</section>
+
+<!-- ============ 4 · notation ============ -->
+<section class="slide" id="4" data-title="Notation" data-sec="design">
+  <p class="eyebrow">Notation · §2</p>
+  <h2>The symbols, in one place</h2>
+  <div class="fig html">
+    <table class="ledger">
+      <thead><tr><th style="width:16%">Symbol</th><th style="width:54%">Meaning</th><th style="width:18%">Typical value</th><th class="loc" style="width:12%">Where</th></tr></thead>
+      <tbody>
+        <tr><td>$N$</td><td>[number of blocks]</td><td>$2^{30}$</td><td class="loc">§2, p. 3</td></tr>
+        <tr><td>$Z$</td><td>[slots per bucket]</td><td>$4$</td><td class="loc">§2.3</td></tr>
+        <tr><td>$\lambda$</td><td>[security parameter]</td><td>$128$</td><td class="loc">§2</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <aside class="notes">Only the symbols that the deck uses. The paper's own notation table, if any: [where].</aside>
+</section>
+
+<!-- ============ 5 · evaluation ============ -->
+<section class="slide" id="5" data-title="Evaluation: the headline number" data-sec="eval">
+  <p class="eyebrow">Evaluation · §6, Table 3</p>
+  <h2>[One sentence: what the headline result says]</h2>
+  <div class="row">
+    <div class="fig"><svg id="fbars" role="img" aria-label="[Bar chart: name and value of each bar, for screen readers]"></svg></div>
+    <div class="formal" data-bstep="3">
+      <p class="k">Formal · cost model, Eq. (2)</p>
+      <p>$$\mathrm{BW}=2\,Z\,s\,(L+1)$$</p>
+      <p class="src">[Measured or modelled? At which scale? Against which baseline?]</p>
+    </div>
+  </div>
+  <ul class="say">
+    <li>[What the chart shows, in one line. Tag derived numbers <span class="tag calc">computed</span>.]</li>
+  </ul>
+  <div class="qs">
+    <p class="q" data-lane="systems">[Is the baseline the state of the art, and is it tuned?] <span class="at">§6.1, p. 11</span></p>
+  </div>
+  <aside class="notes">
+    <ul>
+      <li>[Source of each bar: table, figure or equation. The formula for each computed value.]</li>
+    </ul>
+  </aside>
+</section>
+
+<!-- ============ 6 · prior work ============ -->
+<section class="slide" id="6" data-title="Closest prior work" data-sec="verdict">
+  <p class="eyebrow">Novelty · what is new, and what was known</p>
+  <h2>Closest prior work</h2>
+  <div class="fig html">
+    <table class="ledger">
+      <thead><tr><th style="width:22%">Prior work</th><th style="width:34%">What it already does</th><th style="width:34%">What this paper adds</th><th style="width:10%">Cited?</th></tr></thead>
+      <tbody>
+        <tr><td>[Author et al., venue year]</td><td>[mechanism, with its section]</td><td>[the delta]</td><td><span class="tag bad">no</span></td></tr>
+        <tr><td>[Author et al., venue year]</td><td>[...]</td><td>[...]</td><td><span class="tag ok">yes</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+  <aside class="notes">Which lane found each row, and which source text it read (section, table).</aside>
+</section>
+
+<!-- ============ 7 · claims ledger ============ -->
+<section class="slide" id="7" data-title="Each first claim, with its qualifier" data-sec="verdict">
+  <p class="eyebrow">Claims ledger · verdicts from the lanes</p>
+  <h2>Each "first" claim, with its qualifier</h2>
+  <div class="fig html">
+    <table class="ledger">
+      <thead><tr><th style="width:29%">Claim, as stated</th><th class="loc" style="width:13%">Where</th><th style="width:44%">Qualifier from the lanes</th><th style="width:14%">Verdict</th></tr></thead>
+      <tbody>
+        <tr><td>"[The first ... with ...]"</td><td class="loc">abstract · §1</td><td>[What restricts the claim.]</td><td><span class="tag nv">narrow</span></td></tr>
+        <tr><td>"[The only design that ...]"</td><td class="loc">§1.1</td><td>[Counter-example, with its source.]</td><td><span class="tag bad">false</span></td></tr>
+        <tr><td>"[Provably secure under ...]"</td><td class="loc">Thm 1</td><td>[The check that the lane ran.]</td><td><span class="tag ok">holds</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+  <aside class="notes">Verdicts: holds · narrow (holds with a qualifier) · unsupported · false · not verified.</aside>
+</section>
+
+<!-- ============ 8 · all questions ============ -->
+<section class="slide" id="8" data-title="All questions, by lane" data-sec="verdict">
+  <p class="eyebrow">Questions · collected from every slide</p>
+  <h2>All questions, by lane</h2>
+  <div class="fig html scroll"><div class="cols3" id="allq"></div></div>
+  <aside class="notes">The deck builds this slide from the question chips on the other slides. Each item links to its slide. The full lists are in lanes/*.md, section 6.</aside>
+</section>
+
+<!-- ============ 9 · score card ============ -->
+<section class="slide" id="9" data-title="Score card" data-sec="verdict">
+  <p class="eyebrow">Score · scale in score-scale.md</p>
+  <h2>Score card</h2>
+  <div class="fig html">
+    <table class="ledger score">
+      <thead><tr><th style="width:16%">Who</th><th style="width:10%">Score</th><th style="width:14%">Confidence</th><th style="width:60%">Why, in one line</th></tr></thead>
+      <tbody>
+        <tr><td><span class="lane theory">theory</span></td><td>[1–5]</td><td>[1–5]</td><td>[reason, with an anchor]</td></tr>
+        <tr><td><span class="lane systems">systems</span></td><td>[1–5]</td><td>[1–5]</td><td>[reason, with an anchor]</td></tr>
+        <tr><td><span class="lane protocol">protocol</span></td><td>[1–5]</td><td>[1–5]</td><td>[reason, with an anchor]</td></tr>
+        <tr><td><span class="lane reader">reader</span></td><td>—</td><td>—</td><td>Your call.</td></tr>
+      </tbody>
+    </table>
+    <p class="scale">Suggested range: [x–y]. 1 reject · 2 weak reject · 3 weak accept · 4 accept · 5 strong accept.</p>
+  </div>
+  <aside class="notes">Where the lanes disagree, and what would move each score.</aside>
+</section>
+
+<!-- ============ 10 · backup: sources ============ -->
+<section class="slide" id="10" data-title="Backup: sources and gaps" data-sec="backup">
+  <p class="eyebrow">Backup · verification status</p>
+  <h2>Sources, failed fetches, and what is not verified</h2>
+  <div class="fig html">
+    <ul class="cav">
+      <li><b>Paper.</b> [How the text was extracted. Display equations read from the page images.]</li>
+      <li><b>Read by the lanes.</b> [Prior work read in full, with the copy used.]</li>
+      <li><b>Failed fetches.</b> [Each URL and its error.]</li>
+      <li><b>Not verified.</b> [Claims or numbers that nobody could check.]</li>
+    </ul>
+  </div>
+  <aside class="notes">The lane reports, section 8, list every URL and error.</aside>
+</section>
+
+<nav class="bar" aria-label="Slide navigation">
+  <div class="prog" id="prog"></div>
+  <a class="home" href="../">← folder</a>
+  <button type="button" id="b-prev" aria-label="Previous slide">‹</button>
+  <span class="count" id="count" aria-live="polite">1 / 2</span>
+  <button type="button" id="b-next" aria-label="Next slide">›</button>
+  <span class="ttl" id="ttl"></span>
+  <span class="k">N notes · Q questions · T theme · B builds</span>
+  <button type="button" id="b-notes" aria-pressed="false" title="Speaker notes (N)">notes</button>
+  <button type="button" id="b-qs" aria-pressed="true" title="Lane questions (Q)">Qs</button>
+  <button type="button" id="b-theme" aria-label="Switch between light and dark theme" title="Light / dark (T)">
+    <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="6.5" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M8 1.5a6.5 6.5 0 0 1 0 13z" fill="currentColor"/></svg>
+  </button>
+</nav>
+
+
+<script>
+/* Deck engine. Every figure reads its colours from the CSS tokens at draw time, so light and dark both work.
+   Numbers: cite the page, table or equation of the paper; derived values say "computed". */
+var SVGNS = 'http://www.w3.org/2000/svg', MONO = 'Ubuntu Mono';
+function el(name, attrs, text){
+  var n = document.createElementNS(SVGNS, name);
+  for (var k in attrs) if (attrs[k] !== null && attrs[k] !== undefined) n.setAttribute(k, attrs[k]);
+  if (text !== undefined) n.textContent = text;
+  return n;
+}
+function css(v){ return getComputedStyle(document.documentElement).getPropertyValue(v).trim(); }
+function $(id){ return document.getElementById(id); }
+function fmt(n){ return Math.round(n).toLocaleString('en-US'); }
+function clear(svg){ while (svg.firstChild) svg.removeChild(svg.firstChild); }
+function hexLum(h){
+  h = String(h).replace('#', '').trim();
+  if (h.length === 3) h = h.split('').map(function(c){ return c + c; }).join('');
+  if (!/^[0-9a-fA-F]{6}$/.test(h)) return 0.5;
+  var v = [0, 2, 4].map(function(i){ var c = parseInt(h.substr(i, 2), 16) / 255; return c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4); });
+  return 0.2126 * v[0] + 0.7152 * v[1] + 0.0722 * v[2];
+}
+/* text colour with the higher contrast on a filled shape */
+function onCol(h){ var L = hexLum(h); return (1.05 / (L + 0.05)) >= ((L + 0.05) / 0.0556) ? '#ffffff' : '#111111'; }
+function tw(s, fs){ return String(s).length * fs * 0.5; }   /* Ubuntu Mono: 0.5 em advance */
+function T(x, y, s, o){
+  o = o || {};
+  var a = { x:x, y:y, 'font-family':MONO, 'font-size':o.fs || 13, fill:o.fill || css('--ink-1') };
+  if (o.anchor) a['text-anchor'] = o.anchor;
+  if (o.w) a['font-weight'] = o.w;
+  if (o.rot) a.transform = 'rotate(' + o.rot + ' ' + x + ' ' + y + ')';
+  return el('text', a, s);
+}
+function arrowDef(svg, id, col){
+  var d = el('defs', {}), mk = el('marker', { id:id, viewBox:'0 0 10 10', refX:9, refY:5, markerWidth:7, markerHeight:7, orient:'auto-start-reverse' });
+  mk.appendChild(el('path', { d:'M0 0L10 5L0 10z', fill:col }));
+  d.appendChild(mk); svg.appendChild(d);
+}
+function add(svg, n){ svg.appendChild(n); return n; }
+function rect(svg, x, y, w, h, o){
+  o = o || {};
+  return add(svg, el('rect', { x:x, y:y, width:Math.max(0, w), height:Math.max(0, h), rx:o.rx === undefined ? 4 : o.rx, fill:o.fill || 'none',
+    'fill-opacity':o.fo === undefined ? null : o.fo, stroke:o.stroke || null, 'stroke-width':o.sw || (o.stroke ? 1.3 : null), 'stroke-dasharray':o.dash || null }));
+}
+function path(svg, d, o){
+  o = o || {};
+  return add(svg, el('path', { d:d, fill:o.fill || 'none', stroke:o.stroke || css('--ink-muted'), 'stroke-width':o.sw || 1.5,
+    'stroke-dasharray':o.dash || null, 'marker-end':o.mk ? 'url(#' + o.mk + ')' : null, 'stroke-linejoin':'round', 'fill-opacity':o.fo === undefined ? null : o.fo }));
+}
+function arrow(svg, x1, y1, x2, y2, mk, o){ o = o || {}; o.mk = mk; return path(svg, 'M' + x1 + ' ' + y1 + 'L' + x2 + ' ' + y2, o); }
+/* horizontal brace; dir = 1 opens downward under a span (tip down), -1 above a span (tip up) */
+function brace(svg, x1, x2, y, dir, col){
+  var m = (x1 + x2) / 2, r = 6 * dir;
+  path(svg, 'M' + x1 + ' ' + y + 'q0 ' + r + ' ' + Math.abs(r) + ' ' + r + 'H' + (m - Math.abs(r)) + 'q' + Math.abs(r) + ' 0 ' + Math.abs(r) + ' ' + r +
+    'q0 ' + (-r) + ' ' + Math.abs(r) + ' ' + (-r) + 'H' + (x2 - Math.abs(r)) + 'q' + Math.abs(r) + ' 0 ' + Math.abs(r) + ' ' + (-r), { stroke:col || css('--ink-muted'), sw:1.4 });
+  return m;
+}
+/* a rounded tag; returns its width */
+function pill(svg, x, y, txt, col, fs, o){
+  o = o || {};
+  var w = tw(txt, fs) + 18, h = fs + 9;
+  rect(svg, x, y, w, h, { fill:col, fo:o.fo === undefined ? 0.13 : o.fo, stroke:col, sw:1.3, rx:h / 2, dash:o.dash });
+  add(svg, T(x + w / 2, y + h / 2 + fs * 0.36, txt, { anchor:'middle', fs:fs, w:700, fill:o.ink || col }));
+  return w;
+}
+/* a label on a plate, so it never touches a line */
+function plate(svg, x, y, txt, o){
+  o = o || {};
+  var fs = o.fs || 13, w = tw(txt, fs) + 10, h = fs + 6, x0 = o.anchor === 'middle' ? x - w / 2 : (o.anchor === 'end' ? x - w : x);
+  rect(svg, x0, y - fs * 0.82 - 3, w, h, { fill:css('--plane'), rx:3 });
+  add(svg, T(x0 + w / 2, y, txt, { anchor:'middle', fs:fs, w:o.w, fill:o.fill }));
+  return w;
+}
+/* a check mark drawn as a path: Ubuntu Mono has no ✓, and the fallback glyph looks like √.
+   (x, y) is the left end at about the text baseline; s is the width */
+function tick(svg, x, y, s, col, sw){
+  return path(svg, 'M' + x + ' ' + (y - s * 0.38) + 'l' + (s * 0.36) + ' ' + (s * 0.4) + 'l' + (s * 0.64) + ' ' + (-s * 0.82), { stroke:col, sw:sw || Math.max(1.8, s * 0.17) });
+}
+/* ✓ / ~ / ✗ / – mark in a circle */
+function mark(svg, cx, cy, r, m, solid){
+  var col = css(m === 'y' ? '--good' : (m === 'p' ? '--warn-ink' : (m === '-' ? '--ink-muted' : '--critical')));
+  add(svg, el('circle', { cx:cx, cy:cy, r:r, fill:col, 'fill-opacity': solid ? 0.9 : 0.1, stroke:col, 'stroke-width': solid ? 1.4 : 1.6, 'stroke-dasharray': solid ? null : '3 2.5' }));
+  var fg = solid ? onCol(col) : col;
+  if (m === 'y') tick(svg, cx - r * 0.5, cy + r * 0.34, r, fg, r * 0.2);
+  else add(svg, T(cx, cy + r * 0.42, m === 'p' ? '~' : (m === '-' ? '–' : '✗'), { anchor:'middle', fs:r * 1.15, w:700, fill:fg }));
+}
+/* a centred verdict: drawn tick or ✗, then the word */
+function verdict(svg, cx, y, txt, fs, ok){
+  var col = css(ok ? '--good' : '--critical'), gw = fs * 0.85, w = gw + 6 + tw(txt, fs), x0 = cx - w / 2;
+  if (ok) tick(svg, x0, y - fs * 0.05, gw, col); else add(svg, T(x0 + gw / 2, y, '✗', { anchor:'middle', fs:fs, w:700, fill:col }));
+  add(svg, T(x0 + gw + 6, y, txt, { fs:fs, w:700, fill:col }));
+}
+/* a pill whose text ends in a drawn tick; returns its width */
+function tpill(svg, x, y, txt, col, fs){
+  var tl = plainLen(txt) * fs * 0.5, w = tl + 18 + fs, h = fs + 9;
+  rect(svg, x, y, w, h, { fill:col, fo:0.13, stroke:col, sw:1.3, rx:h / 2 });
+  add(svg, rt(x + 9, y + h / 2 + fs * 0.36, txt, { fs:fs, w:700, fill:col }));
+  tick(svg, x + 9 + tl + 5, y + h / 2 + fs * 0.3, fs * 0.8, col);
+  return w;
+}
+/* text with subscripts: "B_{b−1}", "ε_rbr", "com_i" (one char, or a {group}) */
+function rt(x, y, s, o){
+  o = o || {};
+  var t = T(x, y, undefined, o), fs = o.fs || 13, low = false, re = /_(\{[^}]*\}|[^\s{])/g, last = 0, m;
+  function put(txt, sub){
+    if (!txt) return;
+    var a = {};
+    if (sub){ a['font-size'] = fs * 0.72; if (!low){ a.dy = fs * 0.28; low = true; } }
+    else if (low){ a.dy = -fs * 0.28; low = false; }
+    t.appendChild(el('tspan', a, txt));
+  }
+  while ((m = re.exec(s))){ put(s.slice(last, m.index), false); put(m[1].replace(/[{}]/g, ''), true); last = re.lastIndex; }
+  put(s.slice(last), false);
+  return t;
+}
+function plainLen(s){ return String(s).replace(/_\{([^}]*)\}/g, '$1').replace(/_/g, '').length; }
+function polar(cx, cy, r, a){ var t = a * Math.PI / 180; return [cx + r * Math.cos(t), cy + r * Math.sin(t)]; }
+/* an annular sector from angle a0 to a1 (degrees, clockwise from 3 o'clock) */
+function sector(cx, cy, r0, r1, a0, a1){
+  var L = (a1 - a0) > 180 ? 1 : 0, p0 = polar(cx, cy, r1, a0), p1 = polar(cx, cy, r1, a1), p2 = polar(cx, cy, r0, a1), p3 = polar(cx, cy, r0, a0);
+  return 'M' + p0[0] + ' ' + p0[1] + 'A' + r1 + ' ' + r1 + ' 0 ' + L + ' 1 ' + p1[0] + ' ' + p1[1] + 'L' + p2[0] + ' ' + p2[1] +
+    'A' + r0 + ' ' + r0 + ' 0 ' + L + ' 0 ' + p3[0] + ' ' + p3[1] + 'Z';
+}
+
+/* ---------- builds: a figure tags groups with the step (1..N) from which they show ----------
+   bg() runs fn and wraps everything fn appended to svg into one tagged <g>.
+   kind: fade | growx (grow from the left) | land (slide in from the left + fade) | draw (path draw)
+   | kf (custom keyframes in g._kf). delay / dur in ms. The figure itself always draws the final
+   state; applyStatic() hides the groups above the current step, play() animates one step's groups. */
+var BUILDS = { fclaims:3, fflow:5, fbars:4 }, stepOf = {}, buildsOn = true, MKN = 0;
+try { buildsOn = localStorage.getItem('rp-builds') !== 'off'; } catch(e){}
+function bAttrs(k, kind, delay, dur){ return { 'data-b':k, 'data-bk':kind || 'fade', 'data-bd':delay || 0, 'data-bt':dur || null }; }
+function bg(svg, k, fn, kind, delay, dur){
+  var n0 = svg.childNodes.length; fn();
+  if (!k) return null;
+  var g = el('g', bAttrs(k, kind, delay, dur));
+  while (svg.childNodes.length > n0) g.appendChild(svg.childNodes[n0]);
+  svg.appendChild(g); return g;
+}
+/* a group shown only before step k (it fades out at step k, after delay ms): for crossfades */
+function until(g, k, delay){ if (g && k){ g.setAttribute('data-bu', k); g.setAttribute('data-bud', delay || 0); } return g; }
+function stepG(par, k, kind, delay, dur){ return add(par, el('g', bAttrs(k, kind, delay, dur))); }
+function reducedMotion(){ try { return window.matchMedia('(prefers-reduced-motion: reduce)').matches; } catch(e){ return false; } }
+function bHtml(svg){ var sl = svg.closest('.slide'); return sl ? sl.querySelectorAll('[data-bstep]') : []; }
+function applyStatic(svg, s){
+  Array.prototype.forEach.call(bHtml(svg), function(e){
+    if (e.getAnimations) e.getAnimations().forEach(function(a){ a.cancel(); });
+    e.style.visibility = Number(e.getAttribute('data-bstep')) > s ? 'hidden' : '';
+  });
+  Array.prototype.forEach.call(svg.querySelectorAll('g[data-b]'), function(g){
+    if (g.getAnimations) g.getAnimations({ subtree:true }).forEach(function(a){ a.cancel(); });
+    if (g._cl) g._cl();
+    var bu = Number(g.getAttribute('data-bu')) || 0;
+    g.style.visibility = (Number(g.getAttribute('data-b')) > s || (bu && s >= bu)) ? 'hidden' : '';
+  });
+}
+function drawIn(svg, g, o){
+  var vb = svg.viewBox.baseVal, defs = add(svg, el('defs', {})), ps = [];
+  Array.prototype.forEach.call(g.querySelectorAll('path, line'), function(p){
+    if (p.closest('marker')) return;
+    var d = p.tagName.toLowerCase() === 'line' ? 'M' + p.getAttribute('x1') + ' ' + p.getAttribute('y1') + 'L' + p.getAttribute('x2') + ' ' + p.getAttribute('y2') : p.getAttribute('d');
+    var id = 'bm' + (++MKN), m = el('mask', { id:id, maskUnits:'userSpaceOnUse', x:vb.x - 60, y:vb.y - 60, width:vb.width + 120, height:vb.height + 120 });
+    var mp = el('path', { d:d, fill:'none', stroke:'#ffffff', 'stroke-width':26, 'stroke-linejoin':'round', pathLength:1, 'stroke-dasharray':'1 2', 'stroke-dashoffset':0 });
+    m.appendChild(mp); defs.appendChild(m); p.setAttribute('mask', 'url(#' + id + ')'); ps.push(p);
+    if (mp.animate) mp.animate([{ strokeDashoffset:1 }, { strokeDashoffset:0 }], o);
+  });
+  var done = false;
+  g._cl = function(){ if (done) return; done = true; ps.forEach(function(p){ p.removeAttribute('mask'); }); if (defs.parentNode) defs.parentNode.removeChild(defs); g._cl = null; };
+  setTimeout(function(){ if (g._cl) g._cl(); }, o.delay + o.duration + 80);
+}
+function play(svg, s){
+  if (reducedMotion()) return;
+  Array.prototype.forEach.call(svg.querySelectorAll('g[data-b="' + s + '"]'), function(g){
+    if (!g.animate) return;
+    var kind = g.getAttribute('data-bk'), o = { duration:Number(g.getAttribute('data-bt')) || 400, delay:Number(g.getAttribute('data-bd')) || 0, easing:'ease-out', fill:'backwards' };
+    if (kind === 'growx'){ g.style.transformBox = 'fill-box'; g.style.transformOrigin = '0% 50%'; g.animate([{ transform:'scaleX(0)' }, { transform:'scaleX(1)' }], o); }
+    else if (kind === 'growy'){ g.style.transformBox = 'fill-box'; g.style.transformOrigin = '50% 100%'; g.animate([{ transform:'scaleY(0)' }, { transform:'scaleY(1)' }], o); }
+    else if (kind === 'land') g.animate([{ opacity:0, transform:'translateX(-14px)' }, { opacity:1, transform:'translateX(0)' }], o);
+    else if (kind === 'draw') drawIn(svg, g, o);
+    else if (kind === 'kf' && g._kf){ o.easing = 'linear'; g.animate(g._kf, o); }
+    else g.animate([{ opacity:0 }, { opacity:1 }], o);
+  });
+  Array.prototype.forEach.call(bHtml(svg), function(e){
+    if (Number(e.getAttribute('data-bstep')) === s && e.animate) e.animate([{ opacity:0 }, { opacity:1 }], { duration:380, delay:Number(e.getAttribute('data-bdelay')) || 0, easing:'ease-out', fill:'backwards' });
+  });
+  /* groups that leave at this step: keep them up, fade them out, then hide */
+  Array.prototype.forEach.call(svg.querySelectorAll('g[data-bu="' + s + '"]'), function(g){
+    if (!g.animate || Number(g.getAttribute('data-b')) > s) return;
+    g.style.visibility = '';
+    var a = g.animate([{ opacity:1 }, { opacity:0 }], { duration:320, delay:Number(g.getAttribute('data-bud')) || 0, easing:'ease-out', fill:'forwards' });
+    a.onfinish = function(){ g.style.visibility = 'hidden'; a.cancel(); };
+  });
+}
+
+/* ---------- more helpers ---------- */
+/* a numbered disc */
+function disc(svg, cx, cy, r, txt, col){
+  add(svg, el('circle', { cx:cx, cy:cy, r:r, fill:col }));
+  add(svg, T(cx, cy + r * 0.38, txt, { anchor:'middle', fs:r * 1.05, w:700, fill:onCol(col) }));
+}
+/* a pill whose text may hold subscripts (rt syntax); returns its width */
+function rpill(svg, x, y, txt, col, fs, o){
+  o = o || {};
+  var w = plainLen(txt) * fs * 0.5 + 18, h = fs + 9;
+  rect(svg, x, y, w, h, { fill:col, fo:o.fo === undefined ? 0.13 : o.fo, stroke:col, sw:1.3, rx:h / 2, dash:o.dash });
+  add(svg, rt(x + 9, y + h / 2 + fs * 0.36, txt, { fs:fs, w:700, fill:o.ink || col }));
+  return w;
+}
+/* a box with up to three centred lines (rt syntax) */
+function tbox(svg, x, y, w, h, lines, col, fs, o){
+  o = o || {};
+  rect(svg, x, y, w, h, { fill:col, fo:o.fo === undefined ? 0.07 : o.fo, stroke:col, sw:o.sw || 1.5, rx:o.rx === undefined ? 6 : o.rx, dash:o.dash });
+  var lh = fs * 1.3, y0 = y + h / 2 - (lines.length - 1) * lh / 2 + fs * 0.36;
+  lines.forEach(function(l, i){
+    var t = rt(x + w / 2, y0 + i * lh, l, { fs:fs, w:i === 0 && o.bold ? 700 : null, fill:i === 0 && o.head ? o.head : css('--ink-1') });
+    t.setAttribute('text-anchor', 'middle'); add(svg, t);
+  });
+}
+
+/* ====================================================================
+   Example figures. Each one reads its data from the array above it.
+   Replace the data, or copy a function as the start of a new figure.
+   A figure draws its final state; bg(svg, step, fn, kind) tags what
+   appears at each build step. Set BUILDS[id] to the highest step.
+   ==================================================================== */
+
+/* F-claims · claim cards (slide 2) */
+var CLM = [
+  { id:'C1', t:'[Claim 1]', d:['[detail, line 1]', '[detail, line 2]', '[detail, line 3]'], loc:'abstract · §3', c:'--s1', st:1 },
+  { id:'C2', t:'[Claim 2]', d:['[detail, line 1]', '[detail, line 2]', '[detail, line 3]'], loc:'§4', c:'--s1', st:1 },
+  { id:'C3', t:'[Security claim]', d:['[assumption]', '[reduction to ...]', '[leakage L(R)]'], loc:'Thm 1', c:'--s3', st:2 },
+  { id:'C4', t:'[Headline number]', d:['[x % less than ...]', '[at N = 2³⁰]', '[against baseline B]'], loc:'abstract · §6', c:'--s2', st:3 },
+  { id:'C5', t:'[Second number]', d:['[1 RT against 4]', '[worst case ...]', ''], loc:'§6.2', c:'--s2', st:3 },
+  { id:'C6', t:'[Critique of X]', d:['[what the paper', 'says is wrong', 'with earlier work]'], loc:'App. C', c:'--c-drop', st:3 }
+];
+function fclaims(svg, W){
+  /* builds: one step per group of cards (CLM[i].st) */
+  var nar = W < 640, B = nar ? 0 : 1, ink = css('--ink-muted'), cols = nar ? 1 : 3;
+  var gap = nar ? 10 : 22, cw = (W - (cols - 1) * gap) / cols, ch = nar ? 104 : 168;
+  var fsT = nar ? 14 : 18, fsD = nar ? 11.5 : 15, fsL = nar ? 10 : 12.5;
+  CLM.forEach(function(c, i){
+    var col = css(c.c), x = (i % cols) * (cw + gap), y = Math.floor(i / cols) * (ch + gap), r = nar ? 13 : 18;
+    var cx = x + (nar ? 20 : 28), cy = y + (nar ? 21 : 30);
+    bg(svg, c.st * B, function(){
+      rect(svg, x, y, cw, ch, { fill:col, fo:0.06, stroke:col, sw:1.6, rx:8 });
+      add(svg, el('circle', { cx:cx, cy:cy, r:r, fill:col }));
+      add(svg, T(cx, cy + r * 0.36, c.id, { anchor:'middle', fs:r * 0.95, w:700, fill:onCol(col) }));
+      add(svg, T(x + (nar ? 40 : 56), y + (nar ? 26 : 36), c.t, { fs:fsT, w:700 }));
+      c.d.forEach(function(d, k){ add(svg, rt(x + (nar ? 14 : 20), y + (nar ? 52 : 74) + k * (nar ? 17 : 25), d, { fs:fsD })); });
+      if (nar) add(svg, T(x + cw - 10, y + 26, c.loc, { anchor:'end', fs:fsL, fill:ink }));
+      else add(svg, T(x + cw - 14, y + ch - 12, c.loc, { anchor:'end', fs:fsL, fill:ink }));
+    }, 'land', (i % cols) * 140, 380);
+  });
+  var rows = Math.ceil(CLM.length / cols);
+  svg.setAttribute('viewBox', '0 0 ' + W + ' ' + (rows * ch + (rows - 1) * gap + 2));
+}
+
+/* F-flow · a message sequence between parties (slide 3) */
+var FLOW = {
+  parties: [
+    { n:'[Client]', s:'[holds key K]', c:'--s1' },
+    { n:'[Server]', s:'[stores the data]', c:'--s2' }
+  ],
+  /* one row per message; a = sender, b = receiver; self = local work at party a; st = build step */
+  msgs: [
+    { a:0, b:1, t:'[1 · request]', st:2 },
+    { a:1, self:true, t:'[2 · server work]', st:3 },
+    { a:1, b:0, t:'[3 · response]', st:3 },
+    { a:0, self:true, t:'[4 · client computes]', st:4 },
+    { a:0, b:1, t:'[5 · write back]', st:5 }
+  ]
+};
+function fflow(svg, W){
+  /* builds: 1 parties and lifelines · then one step per message group (FLOW.msgs[i].st) */
+  var nar = W < 640, B = nar ? 0 : 1, P = FLOW.parties, n = P.length;
+  var fs = nar ? 12 : 16, fsS = nar ? 11 : 14, bw = nar ? 124 : 200, bh = nar ? 46 : 60, top = 2, rowH = nar ? 44 : 58;
+  var xs = P.map(function(p, i){ return n === 1 ? W / 2 : bw / 2 + i * (W - bw) / (n - 1); });
+  var y0 = top + bh + (nar ? 34 : 44), yEnd = y0 + (FLOW.msgs.length - 1) * rowH + (nar ? 24 : 30);
+  P.forEach(function(p, i){ arrowDef(svg, 'ffA' + i, css(p.c)); });
+  bg(svg, B, function(){
+    P.forEach(function(p, i){
+      var col = css(p.c);
+      path(svg, 'M' + xs[i] + ' ' + (top + bh) + 'V' + yEnd, { stroke:col, sw:1.4, dash:'4 4' });
+      tbox(svg, xs[i] - bw / 2, top, bw, bh, [p.n, p.s], col, fs, { bold:true, head:col, fo:0.1 });
+    });
+  }, 'fade', 0, 300);
+  var ord = {};
+  FLOW.msgs.forEach(function(m, k){
+    var y = y0 + k * rowH, col = css(P[m.a].c), d0 = (ord[m.st] = (ord[m.st] || 0) + 1) - 1, dl = d0 * 260;
+    if (m.self){
+      var sw = tw(m.t, fsS) + 24, sx = xs[m.a] - sw / 2;
+      bg(svg, m.st * B, function(){
+        rect(svg, sx, y - fsS * 0.95, sw, fsS * 1.9, { fill:css('--plane'), stroke:col, sw:1.4, rx:5 });
+        add(svg, rt(xs[m.a], y + fsS * 0.36, m.t, { fs:fsS, anchor:'middle' }));
+      }, 'fade', dl, 320);
+    } else {
+      var x1 = xs[m.a], x2 = xs[m.b], dir = x2 > x1 ? 1 : -1;
+      bg(svg, m.st * B, function(){ arrow(svg, x1 + dir * 3, y, x2 - dir * 5, y, 'ffA' + m.a, { stroke:col, sw:2 }); }, 'draw', dl, 420);
+      bg(svg, m.st * B, function(){ plate(svg, (x1 + x2) / 2, y - 9, m.t, { anchor:'middle', fs:fs, w:700, fill:col }); }, 'fade', dl + 200, 300);
+    }
+  });
+  svg.setAttribute('viewBox', '0 0 ' + W + ' ' + (yEnd + 4));
+}
+
+/* F-bars · the paper's numbers, redrawn as a bar chart (slide 5) */
+var BARS = {
+  label:'[quantity] per [operation] · [source: Table 3, p. 12]',
+  unit:'KB',
+  rows: [
+    { n:'[Baseline A]', s:'[ref], Table 3', v:600, c:'--s2', st:2 },
+    { n:'[Baseline B]', s:'[ref], Fig. 4', v:393, c:'--s3', st:2 },
+    { n:'[This paper]', s:'Eq. (2)', v:248, c:'--s1', st:3 },
+    { n:'[This paper, worst case]', s:'App. B', v:1240, c:'--s1', st:4, hollow:true }
+  ]
+};
+/* a round tick step that gives at most k intervals up to mx */
+function niceStep(mx, k){
+  var raw = mx / Math.max(1, k), p = Math.pow(10, Math.floor(Math.log10(raw))), m = raw / p;
+  return (m <= 1 ? 1 : m <= 2 ? 2 : m <= 5 ? 5 : 10) * p;
+}
+function fbars(svg, W){
+  /* builds: 1 axis · then one step per bar group (BARS.rows[i].st) */
+  var nar = W < 640, B = nar ? 0 : 1, ink = css('--ink-muted'), R = BARS.rows;
+  var LX = nar ? 0 : 250, fs = nar ? 11.5 : 16, fsS = nar ? 10 : 13.5, rh = nar ? 46 : 62, bh = nar ? 16 : 30, y0 = nar ? 44 : 52;
+  var RW = W - LX - (nar ? 64 : 96), mx = Math.max.apply(null, R.map(function(r){ return r.v; }));
+  var st = niceStep(mx, Math.floor(RW / (tw(fmt(mx * 1.2), fsS) + 18))), top = Math.ceil(mx / st) * st;
+  function X(v){ return LX + v / top * RW; }
+  var yEnd = y0 + R.length * rh;
+  bg(svg, B, function(){
+    add(svg, T(0, nar ? 12 : 15, BARS.label + ' · axis in ' + BARS.unit, { fs:fsS, fill:ink }));
+    for (var g = 0; g <= top + 1e-9; g += st){
+      add(svg, el('line', { x1:X(g), x2:X(g), y1:y0 - 6, y2:yEnd, stroke:css('--grid') }));
+      add(svg, T(X(g), y0 - 12, fmt(g), { anchor:'middle', fs:fsS, fill:ink }));
+    }
+  }, 'fade', 0, 300);
+  R.forEach(function(r, i){
+    var col = css(r.c), y = y0 + i * rh + (nar ? 18 : (rh - bh) / 2);
+    bg(svg, r.st * B, function(){
+      if (nar) add(svg, T(0, y - 5, r.n + ' · ' + r.s, { fs:fs - 1, w:700 }));
+      else {
+        add(svg, T(LX - 12, y + bh / 2 - 2, r.n, { anchor:'end', fs:fs, w:700, fill:r.c === '--s1' ? col : css('--ink-1') }));
+        add(svg, T(LX - 12, y + bh / 2 + fsS + 1, r.s, { anchor:'end', fs:fsS - 0.5, fill:ink }));
+      }
+      plate(svg, X(r.v) + 6, y + bh / 2 + fsS * 0.36, fmt(r.v) + ' ' + BARS.unit, { fs:fsS, w:700, fill:col });
+    }, 'fade', 0, 300);
+    bg(svg, r.st * B, function(){
+      rect(svg, X(0), y, X(r.v) - X(0), bh, { fill:col, fo:r.hollow ? 0.2 : 0.85, stroke:col, sw:1.2, rx:2, dash:r.hollow ? '4 2' : null });
+    }, 'growx', 120, 520);
+  });
+  svg.setAttribute('viewBox', '0 0 ' + W + ' ' + (yEnd + (nar ? 10 : 14)));
+}
+
+/* ====================================================================
+   registry, deck navigation, theme
+   ==================================================================== */
+var FIGS = { fclaims:fclaims, fflow:fflow, fbars:fbars };
+var DECK = false;
+function figW(svg){ return DECK ? 1000 : Math.max(300, Math.min(1000, svg.parentNode.clientWidth)); }
+/* deck mode: draw at 1000 units, then narrow the design width (down to a per-figure floor) so the
+   figure fills its box: a narrower viewBox in the same box means bigger text */
+var FMIN = { fclaims:900, fflow:720, fbars:720 };
+function drawFig(id){
+  var svg = $(id); if (!svg) return; clear(svg);
+  if (!DECK){ FIGS[id](svg, figW(svg)); return; }
+  FIGS[id](svg, 1000);
+  var box = svg.parentNode, bw = box.clientWidth, bh = box.clientHeight;
+  if (!bw || !bh) return;
+  var H = svg.viewBox.baseVal.height, W2 = Math.round(Math.max(FMIN[id] || 1000, Math.min(1000, bw / bh * H)));
+  if (W2 < 1000){ clear(svg); FIGS[id](svg, W2); }
+}
+function drawOne(id){ drawFig(id); var svg = $(id); if (svg && BUILDS[id]) applyStatic(svg, effStep(id)); }
+/* builds run only in deck mode, when on; otherwise every figure shows its final state */
+function buildsLive(){ return DECK && buildsOn; }
+function effStep(id){ var n = BUILDS[id]; if (!buildsLive() || stepOf[id] == null) return n; return Math.max(1, Math.min(n, stepOf[id])); }
+function buildFig(i){
+  if (!buildsLive()) return null;
+  var sv = slides[i] && slides[i].querySelector('.fig > svg');
+  return sv && BUILDS[sv.id] ? sv.id : null;
+}
+function setStep(id, s, anim){
+  stepOf[id] = s; var svg = $(id);
+  applyStatic(svg, effStep(id));
+  if (anim) play(svg, effStep(id));
+  updateBar();
+}
+function go(dir){
+  var id = buildFig(cur);
+  if (id){
+    var s = effStep(id);
+    if (dir > 0 && s < BUILDS[id]){ setStep(id, s + 1, true); return; }
+    if (dir < 0 && s > 1){ setStep(id, s - 1, false); return; }
+  }
+  var j = cur + dir;
+  if (j < 0 || j >= slides.length) return;
+  show(j, 'nav', dir > 0 ? 'fwd' : 'back');
+}
+var flashT = null;
+function flash(msg){ $('ttl').textContent = msg; clearTimeout(flashT); flashT = setTimeout(function(){ flashT = null; updateBar(); }, 1600); }
+function toggleBuilds(){
+  buildsOn = !buildsOn;
+  try { localStorage.setItem('rp-builds', buildsOn ? 'on' : 'off'); } catch(e){}
+  Object.keys(BUILDS).forEach(function(id){ stepOf[id] = BUILDS[id]; drawOne(id); });
+  /* HTML build items on slides without a live build must show */
+  if (!buildsOn) Array.prototype.forEach.call(document.querySelectorAll('[data-bstep]'), function(e){ e.style.visibility = ''; });
+  updateBar(); flash(buildsOn ? 'builds on' : 'builds off');
+}
+function drawAll(){ Object.keys(FIGS).forEach(drawOne); }
+
+var slides = Array.prototype.slice.call(document.querySelectorAll('.slide')), cur = 0, lastSec = null;
+/* section transition: in deck mode, a slide that opens a new section (data-sec) slides in */
+function secIn(i, how){
+  var sec = slides[i].getAttribute('data-sec');
+  if (how === 'nav' && lastSec !== null && sec !== lastSec && !reducedMotion() && slides[i].animate)
+    slides[i].animate([{ opacity:0, transform:'translateX(3vw)' }, { opacity:1, transform:'none' }], { duration:480, easing:'cubic-bezier(.2,.7,.2,1)' });
+  lastSec = sec;
+}
+function setMode(){
+  var want = window.matchMedia('(min-width: 761px) and (min-height: 500px)').matches;
+  if (want !== DECK || !document.documentElement.classList.contains('ready')){
+    DECK = want;
+    document.documentElement.classList.toggle('deck', DECK);
+    document.documentElement.classList.add('ready');
+  }
+}
+function updateBar(){
+  var id = buildFig(cur), s = id ? effStep(id) : 0, n = id ? BUILDS[id] : 0;
+  $('count').textContent = (cur + 1) + ' / ' + slides.length + (id ? ' · ' + s + '/' + n : '');
+  $('count').title = id ? 'build step ' + s + ' of ' + n : '';
+  $('prog').style.width = ((cur + 1) / slides.length * 100) + '%';
+  if (!flashT) $('ttl').textContent = slides[cur].getAttribute('data-title') || '';
+  $('b-prev').disabled = cur === 0 && s <= 1; $('b-next').disabled = cur === slides.length - 1 && s >= n;
+}
+function show(i, how, entry){
+  /* how: 'nav' = smooth scroll (scroll mode), 'jump' = instant scroll, 'none' = no scroll.
+     entry: 'fwd' = arrived from the previous slide (builds start at step 1); anything else = final state */
+  cur = Math.max(0, Math.min(slides.length - 1, i));
+  if (DECK){
+    slides.forEach(function(s, k){ s.classList.toggle('on', k === cur); });
+    secIn(cur, how);
+    var bid = buildFig(cur);
+    if (bid) stepOf[bid] = entry === 'fwd' ? 1 : BUILDS[bid];
+    Array.prototype.forEach.call(slides[cur].querySelectorAll('.fig > svg'), function(sv){ drawOne(sv.id); });
+    if (bid && entry === 'fwd') play($(bid), 1);
+  } else if (how === 'nav' || how === 'jump'){
+    slides[cur].scrollIntoView({ behavior: how === 'nav' ? 'smooth' : 'auto', block:'start' });
+  }
+  updateBar();
+  if (location.hash !== '#' + (cur + 1)){ try { history.replaceState(null, '', '#' + (cur + 1)); } catch(e){} }
+}
+function fromHash(){ var k = parseInt(String(location.hash).replace('#', ''), 10); return isNaN(k) ? 0 : k - 1; }
+$('b-prev').addEventListener('click', function(){ go(-1); });
+$('b-next').addEventListener('click', function(){ go(1); });
+window.addEventListener('hashchange', function(){ show(fromHash(), 'jump'); });
+function toggleNotes(){ var on = document.body.classList.toggle('show-notes'); $('b-notes').setAttribute('aria-pressed', String(on)); }
+$('b-notes').addEventListener('click', toggleNotes);
+function toggleTheme(){
+  var root = document.documentElement, c = root.getAttribute('data-theme');
+  if (!c) c = 'light';
+  var nx = c === 'dark' ? 'light' : 'dark';
+  root.setAttribute('data-theme', nx);
+  try { localStorage.setItem('rp-theme', nx); } catch(e){}
+  drawAll();
+}
+$('b-theme').addEventListener('click', toggleTheme);
+/* lane questions: Q or the Qs button shows or hides the chips; the choice persists */
+var LANES = [['theory', 'Theory', 't1'], ['systems', 'Systems / evaluation', 't2'], ['protocol', 'Protocol design', 't3'], ['reader', 'Reader', 't4']];
+function setQs(on){
+  document.body.classList.toggle('hide-qs', !on);
+  $('b-qs').setAttribute('aria-pressed', String(on));
+  try { localStorage.setItem('rp-qs', on ? 'on' : 'off'); } catch(e){}
+}
+function toggleQs(){ var on = document.body.classList.contains('hide-qs'); setQs(on); drawAll(); flash(on ? 'questions shown' : 'questions hidden'); }
+$('b-qs').addEventListener('click', toggleQs);
+try { if (localStorage.getItem('rp-qs') === 'off') setQs(false); } catch(e){}
+/* the slide with #allq lists every chip, grouped by lane, with a link to its slide */
+function collectQs(){
+  var box = $('allq'); if (!box) return;
+  LANES.forEach(function(ln){
+    var qs = Array.prototype.slice.call(document.querySelectorAll('.qs .q[data-lane="' + ln[0] + '"]'));
+    if (!qs.length) return;
+    var pn = document.createElement('div'), ol = document.createElement('ol');
+    pn.className = 'qpanel ' + ln[2];
+    pn.innerHTML = '<h3>' + ln[1] + '</h3><p class="who">' + qs.length + (qs.length > 1 ? ' questions' : ' question') + '</p>';
+    qs.forEach(function(q){
+      var k = slides.indexOf(q.closest('.slide')) + 1, li = document.createElement('li');
+      li.innerHTML = q.innerHTML + ' <a href="#' + k + '">→ ' + k + '</a>';
+      ol.appendChild(li);
+    });
+    pn.appendChild(ol); box.appendChild(pn);
+  });
+}
+collectQs();
+/* self-check, reported on the console (tools/shoot.py lists console errors) */
+function checkDeck(){
+  if (!DECK) return;
+  Object.keys(BUILDS).forEach(function(id){
+    var svg = $(id); if (!svg){ console.error('BUILDS names #' + id + ', which is not in the deck'); return; }
+    var mx = 0;
+    Array.prototype.forEach.call(svg.querySelectorAll('g[data-b]'), function(g){ mx = Math.max(mx, Number(g.getAttribute('data-b'))); });
+    Array.prototype.forEach.call(bHtml(svg), function(e){ mx = Math.max(mx, Number(e.getAttribute('data-bstep'))); });
+    if (mx !== BUILDS[id]) console.error('BUILDS.' + id + ' is ' + BUILDS[id] + ', but the slide uses ' + mx + ' build steps');
+  });
+  Object.keys(FIGS).forEach(function(id){ if (!$(id)) console.error('FIGS names #' + id + ', which is not in the deck'); });
+  var known = LANES.map(function(l){ return l[0]; });
+  Array.prototype.forEach.call(document.querySelectorAll('.qs .q'), function(q){
+    var k = slides.indexOf(q.closest('.slide')) + 1, ln = q.getAttribute('data-lane');
+    if (known.indexOf(ln) < 0) console.error('slide ' + k + ': question with unknown lane "' + ln + '"');
+    if (!q.querySelector('.at')) console.warn('slide ' + k + ': question without an anchor (.at): ' + q.textContent.slice(0, 60));
+  });
+}
+
+document.addEventListener('keydown', function(e){
+  if (e.altKey || e.ctrlKey || e.metaKey) return;
+  var t = e.target, tag = t && t.tagName ? t.tagName.toLowerCase() : '';
+  if (tag === 'input' || tag === 'textarea' || tag === 'select') return;
+  if ((tag === 'button' || tag === 'a') && (e.key === ' ' || e.key === 'Enter')) return;
+  var k = e.key, step = 0;
+  if (k === 'ArrowRight' || k === 'PageDown' || (k === ' ' && !e.shiftKey)) step = 1;
+  else if (k === 'ArrowLeft' || k === 'PageUp' || (k === ' ' && e.shiftKey)) step = -1;
+  else if (k === 'Home'){ e.preventDefault(); show(0, 'nav'); return; }
+  else if (k === 'End'){ e.preventDefault(); show(slides.length - 1, 'nav'); return; }
+  else if (k === 'n' || k === 'N'){ toggleNotes(); return; }
+  else if (k === 't' || k === 'T'){ toggleTheme(); return; }
+  else if (k === 'b' || k === 'B'){ toggleBuilds(); return; }
+  else if (k === 'q' || k === 'Q'){ toggleQs(); return; }
+  if (step){ e.preventDefault(); go(step); }
+});
+/* scroll mode: the counter follows the slide in view */
+if ('IntersectionObserver' in window){
+  var spy = new IntersectionObserver(function(es){
+    if (DECK) return;
+    es.forEach(function(en){ if (en.isIntersecting){ cur = slides.indexOf(en.target); updateBar(); try { history.replaceState(null, '', '#' + (cur + 1)); } catch(e){} } });
+  }, { rootMargin:'-40% 0px -55% 0px' });
+  slides.forEach(function(s){ spy.observe(s); });
+}
+var rz = null;
+window.addEventListener('resize', function(){ clearTimeout(rz); rz = setTimeout(function(){ var was = DECK; setMode(); drawAll(); if (was !== DECK) show(cur, 'jump'); }, 120); });
+
+/* KaTeX: render $..$ and $$..$$ once the deferred scripts have loaded, then redraw (boxes may resize) */
+function renderMath(){
+  if (!window.renderMathInElement) return;
+  try {
+    renderMathInElement(document.body, { delimiters:[{ left:'$$', right:'$$', display:true }, { left:'$', right:'$', display:false }],
+      ignoredTags:['script', 'noscript', 'style', 'textarea', 'pre', 'code', 'svg'], throwOnError:false });
+  } catch(e){}
+  document.documentElement.classList.add('math-ready');
+  drawAll();
+}
+document.addEventListener('DOMContentLoaded', renderMath);
+
+setMode();
+drawAll();
+show(fromHash(), location.hash ? 'jump' : 'none');
+checkDeck();
+if (document.fonts && document.fonts.ready) document.fonts.ready.then(function(){ drawAll(); });
+</script>
+</body>
+</html>

@@ -1,0 +1,7 @@
+# Papers under review are confidential: never commit them.
+papers/*
+!papers/README.md
+*.pdf
+
+__pycache__/
+*.pyc
